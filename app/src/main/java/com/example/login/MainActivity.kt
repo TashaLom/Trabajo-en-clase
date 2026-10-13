@@ -25,6 +25,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.util.Log
+import android.widget.Toast
+
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,6 +47,9 @@ fun LoginScreen() {
     // Variables para guardar lo que el usuario escriba
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var dat by remember { mutableStateOf<Data?>(null) }
 
     // Una columna para organizar todo de arriba hacia abajo
     Column(
@@ -107,7 +116,32 @@ fun LoginScreen() {
 
         // 6. BOTÓN: CONTINÚA CON GOOGLE
         OutlinedButton(
-            onClick = { /* Acción para Google más adelante */ },
+            onClick = {
+                scope.launch {
+                    try {
+                        dat = retrofitclient.api.getData(3)
+
+                        Log.d("API", "ID: ${dat?.id}")
+                        Log.d("API", "Usuario: ${dat?.userId}")
+                        Log.d("API", "Título: ${dat?.title}")
+                        Log.d("API", "Contenido: ${dat?.body}")
+
+                        Toast.makeText(
+                            context,
+                            dat?.title ?: "Sin título",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } catch (e: Exception) {
+                        Log.e("Error Retrofit ", e.message.toString())
+                        Toast.makeText(
+                            context,
+                            "¡Error al conectar al servidor!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
